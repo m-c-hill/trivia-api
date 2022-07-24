@@ -8,10 +8,22 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
+    CORS(app)
+    #CORS(app, resources={"*" : {"origins": "*"}}) # "*/api/*"
+
+    @app.after_request
+    def after_request(response):
+        """
+        When a request is received, run this method to add additional CORS headers to the response.
+        """
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+        return response
 
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
@@ -26,7 +38,6 @@ def create_app(test_config=None):
     Create an endpoint to handle GET requests
     for all available categories.
     """
-
 
     """
     @TODO:
@@ -99,4 +110,3 @@ def create_app(test_config=None):
     """
 
     return app
-
