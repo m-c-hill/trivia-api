@@ -40,3 +40,25 @@ class TriviaTestCase(unittest.TestCase):
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
+
+
+# TEST: At this point, when you start the application
+# you should see questions and categories generated,
+# ten questions per page and pagination at the bottom of the screen for three pages.
+# Clicking on the page numbers should update the questions.
+
+# TEST: When you submit a question on the "Add" tab,
+# the form will clear and the question will appear at the end of the last page
+# of the questions list in the "List" tab.
+
+# TEST: Search by any phrase. The questions list will update to include
+# only question that include that string within their question.
+# Try using the word "title" to start.
+
+# TEST: In the "List" tab / main screen, clicking on one of the
+# categories in the left column will cause only questions of that
+# category to be shown.
+
+# TEST: In the "Play" tab, after a user selects "All" or a category,
+# one question at a time is displayed, the user is allowed to answer
+# and shown whether they were correct or not.
