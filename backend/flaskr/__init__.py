@@ -4,8 +4,10 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
+from flask_migrate import Migrate
 
-from models import setup_db, Question, Category
+
+from models import setup_db, Question, Category, db
 
 QUESTIONS_PER_PAGE = 10
 
@@ -26,6 +28,8 @@ def create_app(test_config=None):
     app = Flask(__name__)
     setup_db(app)
     CORS(app, resources={"*": {"origins": "*"}})  # "*/api/*"
+    db.create_all()
+    migrate = Migrate(app, db)
 
     @app.after_request
     def after_request(response):
@@ -47,7 +51,7 @@ def create_app(test_config=None):
     @app.route("/categories")
     def retrieve_categories():
         categories = Category.query.order_by(Category.id).all()
-        formatted_categories = [category.format() for category in categories]
+        formatted_categories = {category.id: category.type for category in categories}
 
         if len(formatted_categories) == 0:
             abort(404)
@@ -60,13 +64,24 @@ def create_app(test_config=None):
             }
         )
 
+    @app.route("/categories/<int:category_id>/questions")
+    def questions_in_category(category_id):
+        category=Category.query.filter_by(id=category_id).one()
+
+        if category:
+            questions = Question.query.filter_by(category_id=category_id)
+            formatted_questions = [question.format() for question in questions]
+
+            return jsonify({"success": True, "category": category.format(), "questions": formatted_questions, "total_questions": len(formatted_questions)})
+        else:
+            abort(404)
+
     # ====================================
     #  Question endpoints
     # ====================================
 
     @app.route("/questions")
     def retrieve_questions():
-
         questions = Question.query.order_by(Question.id).all()
         current_questions = paginate_questions(request, questions)
 
@@ -89,9 +104,9 @@ def create_app(test_config=None):
 
         try:
             question = Question(
-                question=question.get("question"),
+                question=body.get("question"),
                 answer=body.get("answer"),
-                category=body.get("category"),
+                category_id=body.get("category_id"),
                 difficulty=body.get("difficulty"),
             )
 
@@ -115,13 +130,13 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route("/questions/<int:question_id>", methods=["DELETE"])
-    def remove_question(question_id):
+    def delete_question(question_id):
         try:
             question = Question.query.filter_by(id=question_id).one_or_none()
 
             if question is None:
                 abort(404)
-
+ 
             question.delete()
 
             all_questions = Question.query.order_by(Question.id).all()
@@ -139,12 +154,11 @@ def create_app(test_config=None):
         except:
             abort(422)
 
-    @app.route("/questions/search", methods=["POST"])
+    @app.route("/search", methods=["POST"])
     def search_questions():
-
-        search_term = request.form.get("search_term", "")
+        search_term = request.get_json().get("search_term", "")
         search_results = Question.query.filter(
-            Question.name.ilike(f"%{search_term}%")
+            Question.question.ilike(f"%{search_term}%")
         ).all()
         questions = [question.format() for question in search_results]
 
@@ -161,7 +175,7 @@ def create_app(test_config=None):
     #  Play quiz endpoint
     # ====================================
 
-    @app.route("/play", methods=["POST"])
+    @app.route("/quiz", methods=["POST"])
     def retrieve_questions_to_play():
 
         body = request.get_json()

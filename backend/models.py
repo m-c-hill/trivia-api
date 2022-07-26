@@ -1,12 +1,8 @@
-import os
-from sqlalchemy import Column, String, Integer, create_engine
+from sqlalchemy import Column, String, Integer, ForeignKey
 from flask_sqlalchemy import SQLAlchemy
-import json
+from flask_migrate import Migrate
 
-
-# TODO: link category and question models
 # TODO: Add enum to limit question difficulty to be 1-4
-
 
 
 # Database configuration
@@ -33,13 +29,13 @@ class Question(db.Model):
     id = Column(Integer, primary_key=True)
     question = Column(String)
     answer = Column(String)
-    category = Column(String)
+    category_id = Column(Integer, ForeignKey("categories.id"))
     difficulty = Column(Integer)
 
-    def __init__(self, question, answer, category, difficulty):
+    def __init__(self, question, answer, category_id, difficulty):
         self.question = question
         self.answer = answer
-        self.category = category
+        self.category_id = category_id
         self.difficulty = difficulty
 
     def insert(self):
@@ -58,9 +54,13 @@ class Question(db.Model):
             "id": self.id,
             "question": self.question,
             "answer": self.answer,
-            "category": self.category,
+            "category": self._get_category(),
             "difficulty": self.difficulty,
         }
+
+    def _get_category(self):
+        category = Category.query.filter_by(id=self.category_id).one()
+        return category.format()
 
 
 class Category(db.Model):
@@ -68,6 +68,7 @@ class Category(db.Model):
 
     id = Column(Integer, primary_key=True)
     type = Column(String)
+    questions = db.relationship("Question", backref="questions", lazy=True)
 
     def __init__(self, type):
         self.type = type
