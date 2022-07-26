@@ -4,6 +4,11 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 
 
+# TODO: link category and question models
+# TODO: Add enum to limit question difficulty to be 1-4
+
+
+
 # Database configuration
 postgres_user = "postgres"  # os.environ.get("POSTGRES_USER")
 postgres_pw = "password"  # os.environ.get("POSTGRES_PW")

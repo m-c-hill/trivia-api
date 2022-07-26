@@ -100,12 +100,15 @@ def create_app(test_config=None):
             all_questions = Question.query.order_by(Question.id).all()
             current_questions = paginate_questions(request, all_questions)
 
-            return jsonify(
-                {
-                    "success": True,
-                    "created": question.id,
-                    "questions": current_questions,
-                }
+            return (
+                jsonify(
+                    {
+                        "success": True,
+                        "created": question.id,
+                        "questions": current_questions,
+                    }
+                ),
+                201,
             )
 
         except:
@@ -139,14 +142,19 @@ def create_app(test_config=None):
     @app.route("/questions/search", methods=["POST"])
     def search_questions():
 
-        search_term = ""
-
-        results = []
-
-        questions = [question.format() for question in results]
+        search_term = request.form.get("search_term", "")
+        search_results = Question.query.filter(
+            Question.name.ilike(f"%{search_term}%")
+        ).all()
+        questions = [question.format() for question in search_results]
 
         return jsonify(
-            {"success": True, "questions": questions, "total_results": len(questions)}
+            {
+                "success": True,
+                "search_term": search_term,
+                "questions": questions,
+                "total_results": len(questions),
+            }
         )
 
     # ====================================
