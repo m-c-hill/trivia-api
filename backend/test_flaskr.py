@@ -42,23 +42,75 @@ if __name__ == "__main__":
     unittest.main()
 
 
-# TEST: At this point, when you start the application
-# you should see questions and categories generated,
-# ten questions per page and pagination at the bottom of the screen for three pages.
-# Clicking on the page numbers should update the questions.
+# ====================================
+#  Fixtures
+# ====================================
 
-# TEST: When you submit a question on the "Add" tab,
-# the form will clear and the question will appear at the end of the last page
-# of the questions list in the "List" tab.
 
-# TEST: Search by any phrase. The questions list will update to include
-# only question that include that string within their question.
-# Try using the word "title" to start.
 
-# TEST: In the "List" tab / main screen, clicking on one of the
-# categories in the left column will cause only questions of that
-# category to be shown.
+# ====================================
+#  Category Enpoint Tests
+# ====================================
 
-# TEST: In the "Play" tab, after a user selects "All" or a category,
-# one question at a time is displayed, the user is allowed to answer
-# and shown whether they were correct or not.
+def test_all_categories():
+    pass
+
+def test_all_categories_none_found():
+    pass
+
+def test_get_questions_for_category():
+    pass
+
+def test_no_questions_found_for_category():
+    pass
+
+# ====================================
+#  Question Endpoint Tests
+# ====================================
+
+def test_all_questions():
+    pass
+
+def test_all_questions_none_found():
+    pass
+
+def test_create_new_question():
+    pass
+
+def test_create_new_question_invalid_category():
+    pass
+
+def test_create_new_question_invalid_difficulty():
+    pass
+
+def test_delete_question():
+    pass
+
+def test_delete_question_invalid_id():
+    pass
+
+def test_search_for_question():
+    pass
+
+def test_search_for_question_empty_search_term():
+    pass
+
+def test_search_for_question_no_results():
+    pass
+
+
+# ====================================
+#  Quiz Endpoint Tests
+# ====================================
+
+def test_play_quiz_category_chosen():
+    pass
+
+def test_play_quiz_no_category_chosen():
+    pass
+
+def test_play_quiz_invalid_category():
+    pass
+
+def test_play_quiz_no_questions_remaining():
+    pass

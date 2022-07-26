@@ -3,7 +3,7 @@ from typing import List
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import random
+from random import randint
 from flask_migrate import Migrate
 
 
@@ -176,20 +176,30 @@ def create_app(test_config=None):
     # ====================================
 
     @app.route("/quiz", methods=["POST"])
-    def retrieve_questions_to_play():
+    def quiz():
 
         body = request.get_json()
+        category_id = body.get("category_id", 0)
+        previous_question_ids = body.get("previous_question_ids", [])
 
-        category_id = body.get("category_id")
-        previous_questions = body.get("previous_questions")
+        try:
+            if category_id == 0:
+                all_questions = Question.query.all()
+            else:
+                all_questions = Question.query.filter_by(category_id=category_id).all()
 
-        question = ""
+            all_question_ids = [question.id for question in all_questions]
+            remaining_question_ids = [id for id in all_question_ids if id not in previous_question_ids]
 
-        # Add current question id to previous questions
+            random_index = randint(0, len(remaining_question_ids) - 1)
+            chosen_question_id = remaining_question_ids[random_index]
+            previous_question_ids.append(chosen_question_id)
+            chosen_question = Question.query.filter_by(id=chosen_question_id).first()
 
-        return jsonify(
-            {"success": True, "category_id": category_id, "question": question}
-        )
+            return jsonify({"success": True, "previous_question_ids": previous_question_ids, "question": chosen_question.format(), "category_id": category_id})
+
+        except:
+            abort(404)
 
     # ====================================
     #  Error handlers
