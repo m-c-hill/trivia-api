@@ -1,4 +1,3 @@
-import os
 from typing import List
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -6,8 +5,7 @@ from flask_cors import CORS
 from random import randint
 from flask_migrate import Migrate
 
-
-from models import setup_db, Question, Category, db
+from backend.flaskr.models import setup_db, Question, Category, db
 
 QUESTIONS_PER_PAGE = 10
 
@@ -19,9 +17,9 @@ def paginate_questions(request: request, questions: List[Question]):
     page = request.args.get("page", 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
-    formatted_books = [question.format() for question in questions]
+    formatted_questions = [question.format() for question in questions]
 
-    return formatted_books[start:end]
+    return formatted_questions[start:end]
 
 
 def create_app(test_config=None):
@@ -49,7 +47,7 @@ def create_app(test_config=None):
     # ====================================
 
     @app.route("/categories")
-    def retrieve_categories():
+    def retrieve_all_categories():
         categories = Category.query.order_by(Category.id).all()
         formatted_categories = {category.id: category.type for category in categories}
 
@@ -90,9 +88,10 @@ def create_app(test_config=None):
     # ====================================
 
     @app.route("/questions")
-    def retrieve_questions():
+    def retrieve_all_questions():
         questions = Question.query.order_by(Question.id).all()
         current_questions = paginate_questions(request, questions)
+        categories = Category.query.order_by(Category.type).all()
 
         if len(current_questions) == 0:
             abort(404)
@@ -102,6 +101,8 @@ def create_app(test_config=None):
                 "success": True,
                 "questions": current_questions,
                 "total_questions": len(questions),
+                "categories": {category.id: category.type for category in categories},
+                "current_category:": None,
             }
         )
 
@@ -123,7 +124,6 @@ def create_app(test_config=None):
     @app.route("/questions", methods=["POST"])
     def create_question():
         body = request.get_json()
-
         try:
             question = Question(
                 question=body.get("question"),
@@ -175,6 +175,10 @@ def create_app(test_config=None):
         except:
             abort(422)
 
+    # ====================================
+    #  Search endpoint
+    # ====================================
+
     @app.route("/search", methods=["POST"])
     def search_questions():
         try:
@@ -203,7 +207,7 @@ def create_app(test_config=None):
     @app.route("/quiz", methods=["POST"])
     def quiz():
         body = request.get_json()
-        category_id = body.get("category_id", 0)
+        category_id = body.get("category")["id"]
         previous_question_ids = body.get("previous_question_ids", [])
 
         try:

@@ -1,4 +1,4 @@
-from models import Question, Category
+from backend.flaskr.models import Question, Category
 
 
 def test_new_question():

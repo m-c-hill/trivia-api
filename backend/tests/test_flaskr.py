@@ -1,16 +1,7 @@
-from nis import cat
-import os
-from unicodedata import category
-import unittest
-from jmespath import search
-from numpy import insert
 import pytest
-import json
-from flask_sqlalchemy import SQLAlchemy
-
-from flaskr import create_app
-from models import setup_db, Question, Category
-from test_data import dummy_questions, dummy_categories, all_questions
+from backend.flaskr import create_app
+from backend.flaskr.models import setup_db, Question, Category
+from backend.tests.test_data import dummy_questions, dummy_categories, all_questions
 
 
 # =======================================
@@ -288,6 +279,11 @@ def test_delete_question_invalid_id(client, error_not_found):
     assert body["message"] == error_not_found["message"]
 
 
+# ====================================
+#  Search Endpoint Tests
+# ====================================
+
+
 def test_search_for_question(client, search_results):
     search_term = "country"
     response = client.post("/search", json={"search_term": search_term})
@@ -330,7 +326,8 @@ def test_search_for_question_no_results(client):
 
 def test_play_quiz_category_chosen(client, play_quiz_response):
     response = client.post(
-        "/quiz", json={"category_id": 1, "previous_question_ids": [17]}
+        "/quiz",
+        json={"category": {"type": "science", "id": 1}, "previous_question_ids": [17]},
     )
     body = response.get_json()
 
@@ -343,7 +340,8 @@ def test_play_quiz_category_chosen(client, play_quiz_response):
 
 def test_play_quiz_invalid_category(client, error_not_found):
     response = client.post(
-        "/quiz", json={"category_id": 7, "previous_question_ids": [17]}
+        "/quiz",
+        json={"category": {"type": "physics", "id": 7}, "previous_question_ids": [17]},
     )
     body = response.get_json()
 
@@ -355,7 +353,11 @@ def test_play_quiz_invalid_category(client, error_not_found):
 
 def test_play_quiz_no_questions_remaining(client, error_not_found):
     response = client.post(
-        "/quiz", json={"category_id": 1, "previous_question_ids": [16, 17]}
+        "/quiz",
+        json={
+            "category": {"type": "science", "id": 1},
+            "previous_question_ids": [16, 17],
+        },
     )
     body = response.get_json()
 

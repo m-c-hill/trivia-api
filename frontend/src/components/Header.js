@@ -14,11 +14,11 @@ class Header extends Component {
             this.navTo("");
           }}
         >
-          Udacitrivia
+          Trivyah
         </h1>
         <h2
           onClick={() => {
-            this.navTo("");
+            this.navTo("/list");
           }}
         >
           List
