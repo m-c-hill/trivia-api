@@ -1,6 +1,8 @@
+from nis import cat
 import os
 from unicodedata import category
 import unittest
+from jmespath import search
 from numpy import insert
 import pytest
 import json
@@ -8,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
 from models import setup_db, Question, Category
-from test_data import dummy_questions, dummy_categories
+from test_data import dummy_questions, dummy_categories, all_questions
 
 
 # =======================================
@@ -55,8 +57,13 @@ def all_categories():
 
 
 @pytest.fixture()
-def all_questions():
-    return
+def all_questions_page_one():
+    return all_questions[0:10]
+
+
+@pytest.fixture()
+def all_questions_page_two():
+    return all_questions[10:]
 
 
 @pytest.fixture()
@@ -80,8 +87,46 @@ def all_questions_in_science_category():
 
 
 @pytest.fixture()
-def error_not_found():
-    return {"error": 404, "message": "Not found", "success": False}
+def question_one():
+    return {
+        "answer": "Apollo 13",
+        "category": {"id": 5, "type": "Entertainment"},
+        "difficulty": 4,
+        "id": 1,
+        "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?",
+    }
+
+
+@pytest.fixture()
+def new_question():
+    return {
+        "question": "Who is the author of Norwegian Wood?",
+        "answer": "Haruki Murakami",
+        "category_id": 2,
+        "difficulty": 2,
+    }
+
+
+@pytest.fixture()
+def new_question_response():
+    return {
+        "answer": "Haruki Murakami",
+        "category": {"id": 2, "type": "Art"},
+        "difficulty": 2,
+        "id": 19,
+        "question": "Who is the author of Norwegian Wood?",
+    }
+
+
+@pytest.fixture()
+def search_results():
+    return {
+        "answer": "Uruguay",
+        "category": {"id": 6, "type": "Sports"},
+        "difficulty": 4,
+        "id": 7,
+        "question": "Which country won the first ever soccer World Cup in 1930?",
+    }
 
 
 @pytest.fixture()
@@ -98,6 +143,11 @@ def play_quiz_response():
         },
         "success": True,
     }
+
+
+@pytest.fixture()
+def error_not_found():
+    return {"error": 404, "message": "Not found", "success": False}
 
 
 # ====================================
@@ -153,52 +203,124 @@ def test_no_questions_found_for_category(client, error_not_found):
 #  Question Endpoint Tests
 # ====================================
 
-@pytest.mark.skip(reason="Test needs to be written")
+
 def test_all_questions(client, all_questions_page_one):
-    assert True
+    response = client.get("/questions")
+    body = response.get_json()
 
-@pytest.mark.skip(reason="Test needs to be written")
+    assert response.status_code == 200
+    assert body["questions"] == all_questions_page_one
+    assert body["success"] == True
+    assert body["total_questions"] == len(all_questions)
+
+
 def test_all_questions_pagination(client, all_questions_page_two):
-    assert True
+    response = client.get("/questions", query_string={"page": 2})
+    body = response.get_json()
 
-@pytest.mark.skip(reason="Test needs to be written")
+    assert response.status_code == 200
+    assert body["success"] == True
+    assert body["questions"] == all_questions_page_two
+    assert body["total_questions"] == len(all_questions)
+
+
 def test_all_questions_none_found(client, error_not_found):
-    assert True
+    Question.query.delete()
+    response = client.get("/questions")
+    body = response.get_json()
 
-@pytest.mark.skip(reason="Test needs to be written")
-def test_create_new_question(client, new_question_created_response):
-    assert True
-
-@pytest.mark.skip(reason="Test needs to be written")
-def test_create_new_question_invalid_category(client, error_unprocessable):
-    assert True
+    assert response.status_code == 404
+    assert body["error"] == 404
+    assert body["success"] == False
+    assert body["message"] == error_not_found["message"]
 
 
-@pytest.mark.skip(reason="Feature not yet implemented")
-def test_create_new_question_invalid_difficulty(client, error_unprocessable):
-    assert True
+def test_get_question_by_id(client, question_one):
+    response = client.get(f"/questions/1")
+    body = response.get_json()
 
-@pytest.mark.skip(reason="Test needs to be written")
-def test_delete_question(client, question_deleted_response):
-    assert True
+    assert response.status_code == 200
+    assert body["success"] == True
+    assert body["question"] == question_one
+    assert body["total_questions"] == len(all_questions)
 
-@pytest.mark.skip(reason="Test needs to be written")
-def test_delete_question_invalid_id(client, error_unprocessable):
-    assert True
 
-@pytest.mark.skip(reason="Test needs to be written")
+def test_create_new_question(client, new_question, new_question_response):
+    response = client.post("/questions", json=new_question)
+    body = response.get_json()
+
+    new_question_id = body["created"]
+    assert response.status_code == 201
+
+    response = client.get(f"/questions/{new_question_id}")
+    body = response.get_json()
+
+    assert body["success"] == True
+    assert body["question"] == new_question_response
+    assert body["total_questions"] == len(all_questions) + 1
+
+
+def test_delete_question(client, error_not_found):
+    response = client.delete("/questions/1")
+    body = response.get_json()
+
+    assert response.status_code == 200
+    assert body["success"] == True
+    assert body["deleted"] == 1
+    assert body["total_questions"] == len(all_questions) - 1
+
+    response = client.get(f"/questions/1")
+    body = response.get_json()
+
+    assert response.status_code == 404
+    assert body["error"] == 404
+    assert body["success"] == False
+    assert body["message"] == error_not_found["message"]
+
+
+def test_delete_question_invalid_id(client, error_not_found):
+    response = client.delete("/questions/100")
+    body = response.get_json()
+
+    assert response.status_code == 404
+    assert body["error"] == 404
+    assert body["success"] == False
+    assert body["message"] == error_not_found["message"]
+
+
 def test_search_for_question(client, search_results):
-    assert True
+    search_term = "country"
+    response = client.post("/search", json={"search_term": search_term})
+    body = response.get_json()
 
-@pytest.mark.skip(reason="Test needs to be written")
-def test_search_for_question_empty_search_term(
-    client, search_results_empty_search_term
-):
-    assert True
+    assert response.status_code == 200
+    assert body["success"] == True
+    assert body["questions"] == [search_results]
+    assert body["total_results"] == 1
+    assert body["search_term"] == search_term
 
-@pytest.mark.skip(reason="Test needs to be written")
+
+def test_search_for_question_empty_search_term(client):
+    response = client.post("/search")
+    body = response.get_json()
+
+    assert response.status_code == 200
+    assert body["success"] == True
+    assert body["questions"] == all_questions
+    assert body["total_results"] == 18
+    assert body["search_term"] == ""
+
+
 def test_search_for_question_no_results(client):
-    assert True
+    search_term = "zelda"
+    response = client.post("/search", json={"search_term": search_term})
+    body = response.get_json()
+
+    assert response.status_code == 200
+    assert body["success"] == True
+    assert body["questions"] == []
+    assert body["total_results"] == 0
+    assert body["search_term"] == "zelda"
 
 
 # ====================================

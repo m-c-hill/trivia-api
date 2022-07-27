@@ -9,7 +9,7 @@ from flask_migrate import Migrate
 
 from models import setup_db, Question, Category, db
 
-QUESTIONS_PER_PAGE = 100
+QUESTIONS_PER_PAGE = 10
 
 
 def paginate_questions(request: request, questions: List[Question]):
@@ -102,8 +102,21 @@ def create_app(test_config=None):
                 "success": True,
                 "questions": current_questions,
                 "total_questions": len(questions),
-                "current_category": "",
-                "categories": "",
+            }
+        )
+
+    @app.route("/questions/<int:question_id>")
+    def retrieve_question_by_id(question_id):
+        question = Question.query.filter_by(id=question_id).one_or_none()
+
+        if question is None:
+            abort(404)
+
+        return jsonify(
+            {
+                "success": True,
+                "question": question.format(),
+                "total_questions": len(Question.query.all()),
             }
         )
 
@@ -140,12 +153,11 @@ def create_app(test_config=None):
 
     @app.route("/questions/<int:question_id>", methods=["DELETE"])
     def delete_question(question_id):
+        question = Question.query.filter_by(id=question_id).one_or_none()
+        if question is None:
+            abort(404)
+
         try:
-            question = Question.query.filter_by(id=question_id).one_or_none()
-
-            if question is None:
-                abort(404)
-
             question.delete()
 
             all_questions = Question.query.order_by(Question.id).all()
@@ -165,7 +177,11 @@ def create_app(test_config=None):
 
     @app.route("/search", methods=["POST"])
     def search_questions():
-        search_term = request.get_json().get("search_term", "")
+        try:
+            search_term = request.get_json().get("search_term", "")
+        except AttributeError:
+            search_term = ""
+
         search_results = Question.query.filter(
             Question.question.ilike(f"%{search_term}%")
         ).all()
