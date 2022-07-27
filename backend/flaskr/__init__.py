@@ -9,7 +9,7 @@ from flask_migrate import Migrate
 
 from models import setup_db, Question, Category, db
 
-QUESTIONS_PER_PAGE = 10
+QUESTIONS_PER_PAGE = 100
 
 
 def paginate_questions(request: request, questions: List[Question]):
@@ -66,13 +66,20 @@ def create_app(test_config=None):
 
     @app.route("/categories/<int:category_id>/questions")
     def questions_in_category(category_id):
-        category=Category.query.filter_by(id=category_id).one()
+        category = Category.query.filter_by(id=category_id).one()
 
         if category:
             questions = Question.query.filter_by(category_id=category_id)
             formatted_questions = [question.format() for question in questions]
 
-            return jsonify({"success": True, "category": category.format(), "questions": formatted_questions, "total_questions": len(formatted_questions)})
+            return jsonify(
+                {
+                    "success": True,
+                    "category": category.format(),
+                    "questions": formatted_questions,
+                    "total_questions": len(formatted_questions),
+                }
+            )
         else:
             abort(404)
 
@@ -136,7 +143,7 @@ def create_app(test_config=None):
 
             if question is None:
                 abort(404)
- 
+
             question.delete()
 
             all_questions = Question.query.order_by(Question.id).all()
@@ -189,14 +196,23 @@ def create_app(test_config=None):
                 all_questions = Question.query.filter_by(category_id=category_id).all()
 
             all_question_ids = [question.id for question in all_questions]
-            remaining_question_ids = [id for id in all_question_ids if id not in previous_question_ids]
+            remaining_question_ids = [
+                id for id in all_question_ids if id not in previous_question_ids
+            ]
 
             random_index = randint(0, len(remaining_question_ids) - 1)
             chosen_question_id = remaining_question_ids[random_index]
             previous_question_ids.append(chosen_question_id)
             chosen_question = Question.query.filter_by(id=chosen_question_id).first()
 
-            return jsonify({"success": True, "previous_question_ids": previous_question_ids, "question": chosen_question.format(), "category_id": category_id})
+            return jsonify(
+                {
+                    "success": True,
+                    "previous_question_ids": previous_question_ids,
+                    "question": chosen_question.format(),
+                    "category_id": category_id,
+                }
+            )
 
         except:
             abort(404)

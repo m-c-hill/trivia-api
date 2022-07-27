@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import Column, String, Integer, ForeignKey
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -6,8 +7,8 @@ from flask_migrate import Migrate
 
 
 # Database configuration
-postgres_user = "postgres"  # os.environ.get("POSTGRES_USER")
-postgres_pw = "password"  # os.environ.get("POSTGRES_PW")
+postgres_user = os.environ.get("POSTGRES_USER", "postgres")
+postgres_pw = os.environ.get("POSTGRES_PW", "password")
 database_name = "trivia"
 database_path = (
     f"postgres://{postgres_user}:{postgres_pw}@localhost:5432/{database_name}"
@@ -21,6 +22,8 @@ def setup_db(app, database_path=database_path):
     db.app = app
     db.init_app(app)
     db.create_all()
+
+    return db
 
 
 class Question(db.Model):
@@ -72,6 +75,10 @@ class Category(db.Model):
 
     def __init__(self, type):
         self.type = type
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
 
     def format(self):
         return {"id": self.id, "type": self.type}

@@ -15,6 +15,10 @@ def test_new_question():
     assert question.difficulty == 3
 
 
+def test_new_question_format():
+    pass
+
+
 def test_new_category():
     category = Category(type="Physics")
 
