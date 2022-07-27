@@ -66,22 +66,24 @@ def create_app(test_config=None):
 
     @app.route("/categories/<int:category_id>/questions")
     def questions_in_category(category_id):
-        category = Category.query.filter_by(id=category_id).one()
-
-        if category:
-            questions = Question.query.filter_by(category_id=category_id)
-            formatted_questions = [question.format() for question in questions]
-
-            return jsonify(
-                {
-                    "success": True,
-                    "category": category.format(),
-                    "questions": formatted_questions,
-                    "total_questions": len(formatted_questions),
-                }
-            )
-        else:
+        category = Category.query.filter_by(id=category_id).one_or_none()
+        if category is None:
             abort(404)
+
+        questions = Question.query.filter_by(category_id=category_id).all()
+        if not questions:
+            abort(404)
+
+        formatted_questions = [question.format() for question in questions]
+
+        return jsonify(
+            {
+                "success": True,
+                "category": category.format(),
+                "questions": formatted_questions,
+                "total_questions": len(formatted_questions),
+            }
+        )
 
     # ====================================
     #  Question endpoints
@@ -184,7 +186,6 @@ def create_app(test_config=None):
 
     @app.route("/quiz", methods=["POST"])
     def quiz():
-
         body = request.get_json()
         category_id = body.get("category_id", 0)
         previous_question_ids = body.get("previous_question_ids", [])
