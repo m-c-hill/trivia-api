@@ -1,11 +1,11 @@
-from typing import List
-from flask import Flask, request, abort, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
 from random import randint
+from typing import List
+
+from flask import Flask, abort, jsonify, request
+from flask_cors import CORS
 from flask_migrate import Migrate
 
-from backend.flaskr.models import setup_db, Question, Category, db
+from backend.flaskr.models import Category, Question, db, setup_db
 
 QUESTIONS_PER_PAGE = 10
 

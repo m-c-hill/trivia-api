@@ -1,7 +1,8 @@
 import os
-from sqlalchemy import Column, String, Integer, ForeignKey
-from flask_sqlalchemy import SQLAlchemy
+
 from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, ForeignKey, Integer, String
 
 # TODO: Add enum to limit question difficulty to be 1-4
 

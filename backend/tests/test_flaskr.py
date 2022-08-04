@@ -1,8 +1,12 @@
 import pytest
-from backend.flaskr import create_app
-from backend.flaskr.models import setup_db, Question, Category
-from backend.tests.test_data import dummy_questions, dummy_categories, all_questions
 
+from backend.flaskr import create_app
+from backend.flaskr.models import Category, Question, setup_db
+from backend.tests.data.test_data import (
+    all_questions,
+    dummy_categories,
+    dummy_questions,
+)
 
 # =======================================
 #  Fixtures - Test Client and Dummy Data
@@ -12,9 +16,9 @@ from backend.tests.test_data import dummy_questions, dummy_categories, all_quest
 @pytest.fixture()
 def client():
     app = create_app()
-    database_path = "postgres://postgres:password@localhost:5432/trivia_test"
+    database_path = "postgres://postgres:password@localhost:5432/trivia_test"  # TODO
     db = setup_db(app, database_path)
-    insert_dummy_data()
+    insert_dummy_data()  # Populate database with test data
     yield app.test_client()
     db.drop_all()
 
@@ -60,32 +64,15 @@ def all_questions_page_two():
 @pytest.fixture()
 def all_questions_in_science_category():
     return [
-        {
-            "answer": "The Liver",
-            "category": {"id": 1, "type": "Science"},
-            "difficulty": 4,
-            "id": 16,
-            "question": "What is the heaviest organ in the human body?",
-        },
-        {
-            "answer": "Alexander Fleming",
-            "category": {"id": 1, "type": "Science"},
-            "difficulty": 3,
-            "id": 17,
-            "question": "Who discovered penicillin?",
-        },
+        question
+        for question in all_questions
+        if question["category"]["type"] == "Science"
     ]
 
 
 @pytest.fixture()
 def question_one():
-    return {
-        "answer": "Apollo 13",
-        "category": {"id": 5, "type": "Entertainment"},
-        "difficulty": 4,
-        "id": 1,
-        "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?",
-    }
+    return all_questions[0]
 
 
 @pytest.fixture()
@@ -142,7 +129,7 @@ def error_not_found():
 
 
 # ====================================
-#  Category Enpoint Tests
+#  Category Endpoint Tests
 # ====================================
 
 

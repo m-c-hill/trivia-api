@@ -1,3 +1,7 @@
+# ===================================
+#  Data to be inserted into database
+# ===================================
+
 dummy_categories = [
     {"type": "Science"},
     {"type": "Art"},
@@ -117,6 +121,12 @@ dummy_questions = [
         "question": "What is the capital of Scotland?",
     },
 ]
+
+
+# ============================================
+#  Expected endpoint responses for dummy data
+# ============================================
+
 
 all_questions = [
     {
