@@ -53,3 +53,14 @@ div.button {
 .wrong {
   color: red;
 }
+
+.final-header {
+  color: blue;
+  font-size: 200%;
+}
+
+.input-box {
+  display: inline-block;
+  width: 50%;
+  align-self: center;
+}

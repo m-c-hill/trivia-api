@@ -128,16 +128,16 @@ def create_app(test_config=None):
     @app.route("/questions", methods=["POST"])
     def create_question():
         body = request.get_json()
-        if body.get("difficulty") < 1 or body.get("difficulty") > 4:
-            # Difficulty must be in range 1-4
+        if int(body.get("difficulty")) < 1 or int(body.get("difficulty")) > 5   :
+            # Difficulty must be in range 1-5
             abort(422)
 
         try:
             question = Question(
                 question=body.get("question"),
                 answer=body.get("answer"),
-                category_id=body.get("category_id"),
-                difficulty=body.get("difficulty"),
+                category_id=int(body.get("category_id")),
+                difficulty=int(body.get("difficulty")),
             )
 
             question.insert()

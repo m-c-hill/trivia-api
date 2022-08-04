@@ -71,8 +71,14 @@ class QuizView extends Component {
   getNextQuestion = () => {
     this.getQuestionsPerPlay(this.state.quizCategory.id);
     const previousQuestionIDs = [...this.state.previousQuestionIDs];
+
     if (this.state.currentQuestion.id) {
       previousQuestionIDs.push(this.state.currentQuestion.id);
+    }
+
+    if (this.isFinalQuestion()) {
+      this.setState({ forceEnd: true });
+      return;
     }
 
     $.ajax({
@@ -100,7 +106,7 @@ class QuizView extends Component {
         return;
       },
       error: (error) => {
-        alert("Unable to load question. Please try your request again");
+        //alert("Unable to load question. Please try your request again");
         return;
       },
     });
@@ -157,9 +163,7 @@ class QuizView extends Component {
   renderFinalScore() {
     return (
       <div className="quiz-play-holder">
-        <div className="final-header">
-          Your Final Score is {this.state.numCorrect}
-        </div>
+        <div className="final-header">Final Score: {this.state.numCorrect}</div>
         <div className="play-again button" onClick={this.restartGame}>
           Play Again?
         </div>
@@ -178,10 +182,21 @@ class QuizView extends Component {
     return answerArray.every((el) => formatGuess.includes(el));
   };
 
+  isFinalQuestion = () => {
+    return (
+      this.state.questionsPerPlay === this.state.previousQuestionIDs.length + 1
+    );
+  };
+
   renderCorrectAnswer() {
     let evaluate = this.evaluateAnswer();
+    let finalQuestion = this.isFinalQuestion();
     return (
       <div className="quiz-play-holder">
+        <div className="quiz-counter">
+          Question: {this.state.previousQuestionIDs.length + 1}/
+          {this.state.questionsPerPlay}
+        </div>
         <div className="quiz-question">
           {this.state.currentQuestion.question}
         </div>
@@ -191,7 +206,7 @@ class QuizView extends Component {
         <div className="quiz-answer">{this.state.currentQuestion.answer}</div>
         <div className="next-question button" onClick={this.getNextQuestion}>
           {" "}
-          Next Question{" "}
+          {finalQuestion ? "Get Results" : "Next Question"}
         </div>
       </div>
     );
@@ -213,7 +228,12 @@ class QuizView extends Component {
           {this.state.currentQuestion.question}
         </div>
         <form onSubmit={this.submitGuess}>
-          <input type="text" name="guess" onChange={this.handleChange} />
+          <input
+            className="input-box"
+            type="text"
+            name="guess"
+            onChange={this.handleChange}
+          />
           <input
             className="submit-guess button"
             type="submit"
