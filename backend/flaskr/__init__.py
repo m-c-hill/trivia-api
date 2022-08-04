@@ -236,6 +236,7 @@ def create_app(test_config=None):
                     "previous_question_ids": previous_question_ids,
                     "question": chosen_question.format(),
                     "category_id": category_id,
+                    "total_questions_in_category": len(all_question_ids)
                 }
             )
 

@@ -68,6 +68,7 @@ class QuizView extends Component {
           currentQuestion: result.question,
           guess: "",
           forceEnd: result.question ? false : true,
+          numOfQuestionsInCategory: result.total_questions_in_category,
         });
         return;
       },
@@ -117,7 +118,7 @@ class QuizView extends Component {
                   this.selectCategory({ type: this.state.categories[id], id })
                 }
               >
-                {this.state.categories[id]}
+                {this.state.categories[id].toUpperCase()}
               </div>
             );
           })}
@@ -188,6 +189,11 @@ class QuizView extends Component {
             value="Submit Answer"
           />
         </form>
+
+        <div>
+          Question: {this.state.previousQuestionIDs.length + 1}/
+          {Math.min(this.state.numOfQuestionsInCategory, 5)}
+        </div>
       </div>
     );
   }

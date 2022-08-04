@@ -235,28 +235,6 @@ def test_get_question_by_id(client, question_one):
     assert body["total_questions"] == len(all_questions)
 
 
-def test_create_new_question_category_does_not_exist(client, new_question, error_unprocessable):
-    new_question["category_id"] = 10_000
-    response = client.post("/questions", json=new_question)
-    assert response.status_code == 422
-
-    body = response.get_json()
-    assert body["error"] == 422
-    assert body["success"] == False
-    assert body["message"] == error_unprocessable["message"]
-
-
-def test_create_new_question_difficultly_out_of_range(client, new_question, error_unprocessable):
-    new_question["difficulty"] = 7  # Difficulty must be in range 1-4
-    response = client.post("/questions", json=new_question)
-    assert response.status_code == 422
-
-    body = response.get_json()
-    assert body["error"] == 422
-    assert body["success"] == False
-    assert body["message"] == error_unprocessable["message"]
-
-
 def test_create_new_question(client, new_question, new_question_response):
     response = client.post("/questions", json=new_question)
     body = response.get_json()
@@ -270,6 +248,32 @@ def test_create_new_question(client, new_question, new_question_response):
     assert body["success"] == True
     assert body["question"] == new_question_response
     assert body["total_questions"] == len(all_questions) + 1
+
+
+def test_create_new_question_category_does_not_exist(
+    client, new_question, error_unprocessable
+):
+    new_question["category_id"] = 10_000
+    response = client.post("/questions", json=new_question)
+    assert response.status_code == 422
+
+    body = response.get_json()
+    assert body["error"] == 422
+    assert body["success"] == False
+    assert body["message"] == error_unprocessable["message"]
+
+
+def test_create_new_question_difficultly_out_of_range(
+    client, new_question, error_unprocessable
+):
+    new_question["difficulty"] = 7  # Difficulty must be in range 1-4
+    response = client.post("/questions", json=new_question)
+    assert response.status_code == 422
+
+    body = response.get_json()
+    assert body["error"] == 422
+    assert body["success"] == False
+    assert body["message"] == error_unprocessable["message"]
 
 
 def test_delete_question(client, error_not_found):
