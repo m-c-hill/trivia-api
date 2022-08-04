@@ -4,8 +4,6 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, ForeignKey, Integer, String
 
-# TODO: Add enum to limit question difficulty to be 1-4
-
 
 # Database configuration
 postgres_user = os.environ.get("POSTGRES_USER", "postgres")

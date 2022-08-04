@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from backend.flaskr import create_app
@@ -16,8 +18,13 @@ from backend.tests.data.test_data import (
 @pytest.fixture()
 def client():
     app = create_app()
-    database_path = "postgres://postgres:password@localhost:5432/trivia_test"  # TODO
-    db = setup_db(app, database_path)
+    postgres_user = os.environ.get("POSTGRES_USER", "postgres")
+    postgres_pw = os.environ.get("POSTGRES_PW", "password")
+    test_database_name = "trivia_test"
+    test_database_path = (
+        f"postgres://{postgres_user}:{postgres_pw}@localhost:5432/{test_database_name}"
+    )
+    db = setup_db(app, test_database_path)
     insert_dummy_data()  # Populate database with test data
     yield app.test_client()
     db.drop_all()
@@ -128,6 +135,11 @@ def error_not_found():
     return {"error": 404, "message": "Not found", "success": False}
 
 
+@pytest.fixture()
+def error_unprocessable():
+    return {"error": 422, "message": "Unprocessable", "success": False}
+
+
 # ====================================
 #  Category Endpoint Tests
 # ====================================
@@ -221,6 +233,28 @@ def test_get_question_by_id(client, question_one):
     assert body["success"] == True
     assert body["question"] == question_one
     assert body["total_questions"] == len(all_questions)
+
+
+def test_create_new_question_category_does_not_exist(client, new_question, error_unprocessable):
+    new_question["category_id"] = 10_000
+    response = client.post("/questions", json=new_question)
+    assert response.status_code == 422
+
+    body = response.get_json()
+    assert body["error"] == 422
+    assert body["success"] == False
+    assert body["message"] == error_unprocessable["message"]
+
+
+def test_create_new_question_difficultly_out_of_range(client, new_question, error_unprocessable):
+    new_question["difficulty"] = 7  # Difficulty must be in range 1-4
+    response = client.post("/questions", json=new_question)
+    assert response.status_code == 422
+
+    body = response.get_json()
+    assert body["error"] == 422
+    assert body["success"] == False
+    assert body["message"] == error_unprocessable["message"]
 
 
 def test_create_new_question(client, new_question, new_question_response):

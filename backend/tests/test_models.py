@@ -1,5 +1,4 @@
 import pytest
-
 from backend.flaskr.models import Category, Question
 
 

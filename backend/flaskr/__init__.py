@@ -124,6 +124,10 @@ def create_app(test_config=None):
     @app.route("/questions", methods=["POST"])
     def create_question():
         body = request.get_json()
+        if body.get("difficulty") < 1 or body.get("difficulty") > 4:
+            # Difficulty must be in range 1-4
+            abort(422)
+
         try:
             question = Question(
                 question=body.get("question"),
