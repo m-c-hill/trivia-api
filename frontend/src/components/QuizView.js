@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import $ from "jquery";
 import "../stylesheets/QuizView.css";
 
-const questionsPerPlay = 5;
+const defaultQuestionsPerPlay = 5;
 
 class QuizView extends Component {
   constructor(props) {
@@ -16,6 +16,7 @@ class QuizView extends Component {
       currentQuestion: {},
       guess: "",
       forceEnd: false,
+      questionsPerPlay: defaultQuestionsPerPlay, // Default set to 5
     };
   }
 
@@ -35,7 +36,32 @@ class QuizView extends Component {
   }
 
   selectCategory = ({ type, id = 0 }) => {
-    this.setState({ quizCategory: { type, id } }, this.getNextQuestion);
+    this.setState(
+      {
+        quizCategory: { type, id },
+      },
+      this.getNextQuestion
+    );
+  };
+
+  getQuestionsPerPlay = (category_id) => {
+    $.ajax({
+      url: `/categories/${category_id}/questions`,
+      type: "GET",
+      success: (result) => {
+        this.setState({
+          questionsPerPlay: Math.min(
+            result.total_questions,
+            defaultQuestionsPerPlay
+          ),
+        });
+        return;
+      },
+      error: (error) => {
+        alert("Unable to load categories. Please try your request again");
+        return;
+      },
+    });
   };
 
   handleChange = (event) => {
@@ -43,6 +69,7 @@ class QuizView extends Component {
   };
 
   getNextQuestion = () => {
+    this.getQuestionsPerPlay(this.state.quizCategory.id);
     const previousQuestionIDs = [...this.state.previousQuestionIDs];
     if (this.state.currentQuestion.id) {
       previousQuestionIDs.push(this.state.currentQuestion.id);
@@ -68,7 +95,7 @@ class QuizView extends Component {
           currentQuestion: result.question,
           guess: "",
           forceEnd: result.question ? false : true,
-          numOfQuestionsInCategory: result.total_questions_in_category,
+          numOfQuestionsInCategory: result.previous_question_ids,
         });
         return;
       },
@@ -171,13 +198,17 @@ class QuizView extends Component {
   }
 
   renderPlay() {
-    return this.state.previousQuestionIDs.length === questionsPerPlay ||
-      this.state.forceEnd ? (
+    return this.state.previousQuestionIDs.length ===
+      this.state.questionsPerPlay || this.state.forceEnd ? (
       this.renderFinalScore()
     ) : this.state.showAnswer ? (
       this.renderCorrectAnswer()
     ) : (
       <div className="quiz-play-holder">
+        <div className="quiz-counter">
+          Question: {this.state.previousQuestionIDs.length + 1}/
+          {this.state.questionsPerPlay}
+        </div>
         <div className="quiz-question">
           {this.state.currentQuestion.question}
         </div>
@@ -189,11 +220,6 @@ class QuizView extends Component {
             value="Submit Answer"
           />
         </form>
-
-        <div>
-          Question: {this.state.previousQuestionIDs.length + 1}/
-          {Math.min(this.state.numOfQuestionsInCategory, 5)}
-        </div>
       </div>
     );
   }

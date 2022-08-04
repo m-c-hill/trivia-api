@@ -64,6 +64,10 @@ def create_app(test_config=None):
 
     @app.route("/categories/<int:category_id>/questions")
     def questions_in_category(category_id):
+
+        if category_id == 0:
+            return retrieve_all_questions()
+
         category = Category.query.filter_by(id=category_id).one_or_none()
         if category is None:
             abort(404)
@@ -99,10 +103,10 @@ def create_app(test_config=None):
         return jsonify(
             {
                 "success": True,
+                "category:": {"id": 0, "type": "All"},
                 "questions": current_questions,
                 "total_questions": len(questions),
                 "categories": {category.id: category.type for category in categories},
-                "current_category:": None,
             }
         )
 
