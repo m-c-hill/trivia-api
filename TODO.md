@@ -1,1 +1,0 @@
-- Create error handlers for all expected errors including 400, 404, 422, and 500.
