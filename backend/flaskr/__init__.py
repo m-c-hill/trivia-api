@@ -128,7 +128,7 @@ def create_app(test_config=None):
     @app.route("/questions", methods=["POST"])
     def create_question():
         body = request.get_json()
-        if int(body.get("difficulty")) < 1 or int(body.get("difficulty")) > 5   :
+        if int(body.get("difficulty")) < 1 or int(body.get("difficulty")) > 5:
             # Difficulty must be in range 1-5
             abort(422)
 
@@ -240,7 +240,7 @@ def create_app(test_config=None):
                     "previous_question_ids": previous_question_ids,
                     "question": chosen_question.format(),
                     "category_id": category_id,
-                    "total_questions_in_category": len(all_question_ids)
+                    "total_questions_in_category": len(all_question_ids),
                 }
             )
 
@@ -253,7 +253,7 @@ def create_app(test_config=None):
 
     @app.errorhandler(400)
     def resource_not_found(error):
-        return jsonify({"success": False, "error": 400, "message": "Bad request"}), 400  
+        return jsonify({"success": False, "error": 400, "message": "Bad request"}), 400
 
     @app.errorhandler(404)
     def resource_not_found(error):
@@ -264,6 +264,13 @@ def create_app(test_config=None):
         return (
             jsonify({"success": False, "error": 422, "message": "Unprocessable"}),
             422,
+        )
+
+    @app.errorhandler(500)
+    def unprocessable(error):
+        return (
+            jsonify({"success": False, "error": 500, "message": "Server side error"}),
+            500,
         )
 
     return app

@@ -10,6 +10,7 @@ from backend.tests.data.test_data import (
     dummy_questions,
 )
 
+
 # =======================================
 #  Fixtures - Test Client and Dummy Data
 # =======================================
@@ -25,6 +26,8 @@ def client():
         f"postgres://{postgres_user}:{postgres_pw}@localhost:5432/{test_database_name}"
     )
     db = setup_db(app, test_database_path)
+    db.drop_all()
+    db.create_all()
     insert_dummy_data()  # Populate database with test data
     yield app.test_client()
     db.drop_all()
@@ -319,17 +322,6 @@ def test_search_for_question(client, search_results):
     assert body["questions"] == [search_results]
     assert body["total_results"] == 1
     assert body["search_term"] == search_term
-
-
-def test_search_for_question_empty_search_term(client):
-    response = client.post("/search")
-    body = response.get_json()
-
-    assert response.status_code == 200
-    assert body["success"] == True
-    assert body["questions"] == all_questions
-    assert body["total_results"] == 18
-    assert body["search_term"] == ""
 
 
 def test_search_for_question_no_results(client):
