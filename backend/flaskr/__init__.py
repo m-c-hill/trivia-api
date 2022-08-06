@@ -251,6 +251,10 @@ def create_app(test_config=None):
     #  Error handlers
     # ====================================
 
+    @app.errorhandler(400)
+    def resource_not_found(error):
+        return jsonify({"success": False, "error": 400, "message": "Bad request"}), 400  
+
     @app.errorhandler(404)
     def resource_not_found(error):
         return jsonify({"success": False, "error": 404, "message": "Not found"}), 404

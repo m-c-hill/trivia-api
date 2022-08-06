@@ -1,5 +1,1 @@
-## TODO
-- Update gameplay with results page
-- Write up general README
-- Write up README for backend (incl. API documentation)
-- Submit work
+- Create error handlers for all expected errors including 400, 404, 422, and 500.
